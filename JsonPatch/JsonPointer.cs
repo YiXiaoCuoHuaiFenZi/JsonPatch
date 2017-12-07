@@ -1,29 +1,36 @@
 ﻿// Implementation Json-Patch rfc6901 (https://tools.ietf.org/html/rfc6901) 
 
+using System;
+using System.Linq;
 
 // TODO: this is not well implemented, need to do more work!
 namespace JiRangGe.JsonPatch
 {
     public class JsonPointer
     {
+        private static string Decode(string token)
+        {
+            return Uri.UnescapeDataString(token).Replace("~1", "/").Replace("~0", "~");
+        }
+
         /// <summary>
         /// transform json pointer (Json-Patch rfc6901 https://tools.ietf.org/html/rfc6901) to Newtonsoft JToken path 
         /// </summary>
-        /// <param name="jsonPath">json pointer</param>
+        /// <param name="jsonPointer">json pointer</param>
         /// <returns>Newtonsoft JToken path</returns>
-        public static string ToJTokenPath(string jsonPath)
+        public static string ToJTokenPath(string jsonPointer)
         {
             string p = "";
-            string[] a = jsonPath.TrimStart('/').Split('/');
+            string[] tokens = jsonPointer.Split('/').Skip(1).Select(Decode).ToArray();
 
-            for (int i = 0; i < a.Length; i++)
+            for (int i = 0; i < tokens.Length; i++)
             {
-                string e = a[i];             // current element
+                string e = tokens[i];             // current element
                 string ne = string.Empty;    // next element
 
-                if (i + 1 < a.Length)
+                if (i + 1 < tokens.Length)
                 {
-                    ne = a[i + 1];
+                    ne = tokens[i + 1];
                 }
 
                 if (e.Contains("."))
@@ -48,6 +55,7 @@ namespace JiRangGe.JsonPatch
                 }
             }
             p = p.TrimEnd('.');
+            p = p.Replace("~1", "/").Replace("~0", "~");
 
             return p;
         }
@@ -59,8 +67,9 @@ namespace JiRangGe.JsonPatch
         /// <returns>json pointer</returns>
         public static string ToJsonPointer(string jTokenPath)
         {
+            // it should be a bug of Newtonsoft: {"":"test"}, both root and empty token "" with value "test" JToken path are "".
             bool b = true;
-            string p = "/";
+            string p = jTokenPath == "" ? "" : "/";
 
             for (int i = 0; i < jTokenPath.Length; i++)
             {
@@ -91,6 +100,14 @@ namespace JiRangGe.JsonPatch
                 if (ch == '.' && b)
                 {
                     p += "/";
+                }
+                else if (ch == '~')
+                {
+                    p += "~0";
+                }
+                else if (ch == '/')
+                {
+                    p += "~1";
                 }
                 else if (ch == '[' && Utils.IsNumberic(nch.ToString()))
                 {
