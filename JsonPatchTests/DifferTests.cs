@@ -81,16 +81,43 @@ namespace JiRangGe.JsonPatch.Tests
             TestName = "Diff works for a simple array and replaces it")]
 
         [TestCase(
+            "[1,2,3,4,4]",
+            "[5,6,7]",
+            ExpectedResult = "[{\"op\":\"replace\",\"path\":\"/0\",\"value\":5},{\"op\":\"replace\",\"path\":\"/1\",\"value\":6},{\"op\":\"replace\",\"path\":\"/2\",\"value\":7},{\"op\":\"remove\",\"path\":\"/3\"},{\"op\":\"remove\",\"path\":\"/4\"}]",
+            TestName = "Diff works for a simple array with duplicate elements")]
+
+        [TestCase(
             "{a:[1,2,3,4]}",
             "{a:[5,6,7]}",
             ExpectedResult = "[{\"op\":\"replace\",\"path\":\"/a/0\",\"value\":5},{\"op\":\"replace\",\"path\":\"/a/1\",\"value\":6},{\"op\":\"replace\",\"path\":\"/a/2\",\"value\":7},{\"op\":\"remove\",\"path\":\"/a/3\"}]",
             TestName = "Diff works for a simple array under a property and replaces it")]
 
         [TestCase(
+            "{a:[1,2,3,3,4]}",
+            "{a:[5,6,7]}",
+            ExpectedResult = "[{\"op\":\"replace\",\"path\":\"/a/0\",\"value\":5},{\"op\":\"replace\",\"path\":\"/a/1\",\"value\":6},{\"op\":\"replace\",\"path\":\"/a/2\",\"value\":7},{\"op\":\"remove\",\"path\":\"/a/3\"},{\"op\":\"remove\",\"path\":\"/a/4\"}]",
+            TestName = "Diff works for a simple array with duplicate elements under a property and replaces it")]
+
+        [TestCase(
             "{a:[1,2,3,4]}",
             "{a:[1,2,3,4]}",
             ExpectedResult = "[]",
-            TestName = "JsonPatch handles same array")]
+            TestName = "Diff handles same array")]
+
+        [TestCase(
+            "{a:[1,2,3,4]}",
+            "{a:[1,2,4,3]}",
+            true,
+            ExpectedResult = "[]",
+            TestName = "Diff handles array with duplicate elements, flag NoOrderInBasicTypeValueJArray is true")]
+
+        [TestCase(
+            "{a:[1,2,3,4]}",
+            "{a:[1,2,4,3]}",
+            false,
+            ExpectedResult = "[{\"op\":\"replace\",\"path\":\"/a/2\",\"value\":4},{\"op\":\"replace\",\"path\":\"/a/3\",\"value\":3}]",
+            TestName = "Diff handles array with duplicate elements, flag NoOrderInBasicTypeValueJArray is false")]
+
         [TestCase(
             "{a:[1,2,3,{name:'a'}]}",
             "{a:[1,2,3,{name:'a'}]}",

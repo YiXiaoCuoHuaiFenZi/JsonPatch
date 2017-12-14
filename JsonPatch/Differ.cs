@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace JiRangGe.JsonPatch
@@ -79,7 +80,7 @@ namespace JiRangGe.JsonPatch
                     {
                         JArray newArr = newValue as JArray;
                         JArray oldArr = oldValue as JArray;
-                        if (NoOrderInBasicTypeValueJArray && IsBasicTypeJArray(newArr) && IsBasicTypeJArray(oldArr))
+                        if (NoOrderInBasicTypeValueJArray && IsNoDuplicateBasicTypeJArray(newArr) && IsNoDuplicateBasicTypeJArray(oldArr))
                         {
                             diffJArrayNoOrder(oldArr, newArr, patches);
                         }
@@ -122,6 +123,12 @@ namespace JiRangGe.JsonPatch
         /// <param name="patches">the array collection to store all diff patches</param>
         private void diffJArray(JArray mirror, JArray obj, JArray patches)
         {
+            if (NoOrderInBasicTypeValueJArray && IsNoDuplicateBasicTypeJArray(mirror) && IsNoDuplicateBasicTypeJArray(obj))
+            {
+                diffJArrayNoOrder(mirror, obj, patches);
+                return;
+            }
+
             int oldObjArrSize = mirror.Count;
             int newObjArrSize = obj.Count;
 
@@ -141,7 +148,7 @@ namespace JiRangGe.JsonPatch
                     {
                         JArray newArr = newValue as JArray;
                         JArray oldArr = oldValue as JArray;
-                        if (NoOrderInBasicTypeValueJArray && IsBasicTypeJArray(newArr) && IsBasicTypeJArray(oldArr))
+                        if (NoOrderInBasicTypeValueJArray && IsNoDuplicateBasicTypeJArray(newArr) && IsNoDuplicateBasicTypeJArray(oldArr))
                         {
                             diffJArrayNoOrder(oldArr, newArr, patches);
                         }
@@ -248,21 +255,35 @@ namespace JiRangGe.JsonPatch
         }
 
         /// <summary>
-        /// detemine if a json array is a basic value type array which hasn't JArray or JObject type element.
+        /// detemine if a json array is a basic value type(no JArray or JObject type elements) and no duplicated elements array.
         /// </summary>
         /// <param name="arr">target json array</param>
-        /// <returns>true: indecate target is a basic value type array, false: target is not a basic value type array</returns>
-        private bool IsBasicTypeJArray(JArray arr)
+        /// <returns>true: indecate target is a basic value type and no duplicated elements array, false: target is not a basic value type array or it has duplicated elements</returns>
+        private bool IsNoDuplicateBasicTypeJArray(JArray arr)
         {
+            ArrayList a = new ArrayList();
+
             foreach (var e in arr)
             {
                 if (e is JArray || e is JObject)
                 {
                     return false;
                 }
+                else
+                {
+                    if (a.Contains(e.Value<string>()))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        a.Add(e.Value<string>());
+                    }
+                }
             }
 
             return true;
         }
+
     }
 }
