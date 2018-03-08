@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace JiRangGe.JsonPatch
 {
@@ -11,9 +12,15 @@ namespace JiRangGe.JsonPatch
         /// </summary>
         private bool NoOrderInBasicTypeValueJArray;
 
-        public Differ(bool noOrderInBasicTypeValueJArray = false)
+        /// <summary>
+        /// Compare strings using ordinal sort rules and ignoring the case of the strings being compared.
+        /// </summary>
+        private bool OrdinalIgnoreCase;
+
+        public Differ(bool noOrderInBasicTypeValueJArray = false, bool ordinalIgnoreCase = false)
         {
             this.NoOrderInBasicTypeValueJArray = noOrderInBasicTypeValueJArray;
+            this.OrdinalIgnoreCase = ordinalIgnoreCase;
         }
 
         /// <summary>
@@ -60,9 +67,17 @@ namespace JiRangGe.JsonPatch
 
             foreach (JProperty jp in oldJProperties)
             {
-                string name = jp.Name;
                 JToken oldValue = jp.Value;
-                JToken newValue = obj.GetValue(name);
+                JToken newValue;
+                if (OrdinalIgnoreCase)
+                {
+                    newValue = obj.GetValue(jp.Name, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    newValue = obj.GetValue(jp.Name);
+                }
+
                 if (newValue == null)
                 {
                     string path = JsonPointer.ToJsonPointer(jp.Path);
@@ -104,7 +119,15 @@ namespace JiRangGe.JsonPatch
             foreach (JProperty jp in newJProperties)
             {
                 JToken newValue = jp.Value;
-                JToken oldValue = mirror.GetValue(jp.Name);
+                JToken oldValue;
+                if (OrdinalIgnoreCase)
+                {
+                    oldValue = mirror.GetValue(jp.Name, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    oldValue = mirror.GetValue(jp.Name);
+                }
 
                 if (oldValue == null)
                 {
@@ -284,6 +307,5 @@ namespace JiRangGe.JsonPatch
 
             return true;
         }
-
     }
 }
