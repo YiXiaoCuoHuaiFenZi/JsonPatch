@@ -26,6 +26,12 @@ namespace JiRangGe.JsonPatch.Tests
             ExpectedResult = "{\"foo\":[\"bar\",{\"foo\":\"bar\"}]}",
             TestName = "Add method works for a simple array path")]
 
+        [TestCase(
+            "{\"foo\":[\"bar\"]}",
+            "[{op: 'add', path: '/foo/-', value: ['abc', 'def']}]",
+            ExpectedResult = "{\"foo\":[\"bar\",[\"abc\",\"def\"]]}",
+            TestName = "Adding an array value")]
+
         public string AddTest(string targetString, string patchDocument)
         {
             JToken target = JToken.Parse(targetString);

@@ -68,7 +68,14 @@ namespace JiRangGe.JsonPatch
                     if (jToken is JArray)
                     {
                         JArray item = (JArray)jToken;
-                        item.Insert(Convert.ToInt32(token), value);
+                        if (token == "-")
+                        {
+                            item.Insert(item.Count, value);
+                        }
+                        else
+                        {
+                            item.Insert(Convert.ToInt32(token), value);
+                        }
                     }
                     else
                     {
