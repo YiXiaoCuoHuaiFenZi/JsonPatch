@@ -1,5 +1,5 @@
 # JsonPatch
-Library to apply JSON Patches according to [RFC 6902](tools.ietf.org/html/rfc6902)
+Library to apply JSON Patches according to [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902) 
 
 You can using it to compare two jsons, get differences in JsonPatch format.
 
